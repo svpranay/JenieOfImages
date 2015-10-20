@@ -1,6 +1,7 @@
 package com.example.spvenka.jenieofimages.activities;
 
 import android.content.Intent;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,13 +13,16 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import com.example.spvenka.jenieofimages.R;
 import com.example.spvenka.jenieofimages.adapters.EndlessScrollListener;
 import com.example.spvenka.jenieofimages.adapters.ImageAdapter;
+import com.example.spvenka.jenieofimages.fragments.EditSettingsDialog;
 import com.example.spvenka.jenieofimages.models.GImage;
 import com.example.spvenka.jenieofimages.models.GImageResponse;
 import com.example.spvenka.jenieofimages.net.ImagesFetcher;
+import com.example.spvenka.jenieofimages.util.ParamManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
@@ -30,7 +34,7 @@ import java.util.List;
 
 import cz.msebera.android.httpclient.Header;
 
-public class FeedActivity extends AppCompatActivity {
+public class FeedActivity extends AppCompatActivity implements EditSettingsListener {
 
     private List<GImage> images;
     private ImagesFetcher imagesFetcher = new ImagesFetcher();
@@ -90,7 +94,22 @@ public class FeedActivity extends AppCompatActivity {
                 return false;
             }
         });
+
+        MenuItem settingsItem = menu.findItem(R.id.action_settings);
+        settingsItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                showEditSettingsDialog();
+                return false;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
+    }
+
+    private void showEditSettingsDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        EditSettingsDialog editNameDialog = EditSettingsDialog.newInstance("Settings");
+        editNameDialog.show(fm, "fragment_edit_settings");
     }
 
     private void fetchImages(String query, int page) {
@@ -99,14 +118,14 @@ public class FeedActivity extends AppCompatActivity {
             isNewQuery = false;
         }
 
-        imagesFetcher.getImages(query, page, new JsonHttpResponseHandler() {
+        imagesFetcher.getImages(getApplicationContext(), query, page, new JsonHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, JSONObject response) {
                 try {
 
                     imageAdapter.notifyDataSetChanged();
                     GImageResponse gImageResponse = objectMapper.readValue(response.toString(), GImageResponse.class);
-                    for (int i=0; i < gImageResponse.responseData.results.size(); i++) {
+                    for (int i = 0; i < gImageResponse.responseData.results.size(); i++) {
                         GImage gImage = gImageResponse.responseData.results.get(i);
                         images.add(gImage);
                         imageAdapter.notifyDataSetChanged();
@@ -118,4 +137,15 @@ public class FeedActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public void onFinishEditDialog(String inputText) {
+        //Toast.makeText(this, "Settings update : " + inputText, Toast.LENGTH_SHORT).show();
+        String [] words = inputText.split("[:]");
+        try {
+            ParamManager.updateParam(getApplicationContext(), Integer.parseInt(words[0]), words[1]);
+            //Toast.makeText(this, "Settings : " + ParamManager.getParams(getApplicationContext()), Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

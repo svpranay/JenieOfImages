@@ -25,7 +25,6 @@ public class ImageAdapter extends ArrayAdapter<GImage> {
         public ImageView imageView;
     }
 
-
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         // Get the data item for this position
