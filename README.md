@@ -1,7 +1,7 @@
 # JenieOfImages
 Google Image search
 
-![Image search client](https://github.com/svpranay/InstagramClient/blob/master/imagesearch.gif "Image search client")
+![Image search client](https://github.com/svpranay/JenieOfImages/blob/master/imagesearch.gif "Image search client")
 
 Hours : 5 hours 
 
